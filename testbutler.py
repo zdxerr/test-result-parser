@@ -8,10 +8,16 @@ import dateutil.parser
 
 from result import ResultFile, Sequence
 
-logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s",
-                    datefmt='"%Y-%m-%d %H:%M:%S"', level=logging.DEBUG)
-
 class TestbutlerParser(object):
+    possible_states = {
+        -1: "Not Executed",
+        0: "Ok",
+        1: "Fail",
+        2: "Crash",
+        3: "Exception",
+        4: "Blocked",
+    }
+
     def parse(self):
         self.log = []
 
@@ -31,13 +37,22 @@ class TestbutlerParser(object):
 
         del self._parser
 
-        # parse entries
-        for path, name in self.__entries:
-            sequence_path = os.path.join(os.path.dirname(self.path), path)
-            print sequence_path,
-            # for f in os.listdir(sequence_path):
+        if self.path.lower().endswith('maintest.log.xml'):
+            for path, folder, files in os.walk(os.path.dirname(self.path)):
+                for filename in files:
+                    if filename.lower().endswith('log.xml'):
+                        if filename.lower() == 'maintest.log.xml':
+                            continue
+                        filepath = os.path.join(path, filename)
+                        #name = os.path.relpath(filepath, os.path.dirname(self.path)).strip('.LOG.xml')
+                        s = TestbutlerSequence(self, path=filepath)
+                        #print name, filepath, os.path.dirname(self.path)
 
-            print [ for f in os.listdir(sequence_path) if name in f]
+                        print s
+
+                        pprint(s.log)
+                        exit()
+                        self.sequences.append(s)
 
 
     def start(self, tag, attrs):
@@ -45,16 +60,19 @@ class TestbutlerParser(object):
         print "->".join(self._tags), attrs
 
         # parse time attributes
-        if 'time' in attrs:
-            attrs['time'] = dateutil.parser.parse(attrs['time'])
+        for k in ['time', 'changedate']:
+            if k in attrs:
+                attrs[k] = dateutil.parser.parse(attrs[k])
+
+        if 'result' in attrs:
+            self.state = self.possible_states.get(int(attrs['result']),
+                                             int(attrs['result']))
 
         if tag in ['logFile', 'testDesciption']:
             self.__dict__.update(attrs)
         elif tag == 'entry':
             attrs['log'] = []
             self.__entry_attrs.append(attrs)
-        elif tag == 'log':
-            self.log = True
 
         # elif tag == 'result':
         #     print attrs
@@ -62,16 +80,11 @@ class TestbutlerParser(object):
 
     def end(self, tag):
         assert(tag == self._tags.pop())
-        if tag == 'log':
-            self.log = {}
 
     def data(self, data):
         print "->".join(self._tags), repr(data)
-        if self.log:
-            if data.startswith("[xml]"):
-                self.__entries.append(data[6:].rsplit(" - ", 1))
-        else:
-            pass
+        if self._tags[-1] == 'log':
+            self.log.append(data)
 
 
 class TestbutlerResult(TestbutlerParser, ResultFile):
@@ -80,17 +93,9 @@ class TestbutlerResult(TestbutlerParser, ResultFile):
 
 
 class TestbutlerSequence(TestbutlerParser, Sequence):
-    possible_states = {
-        -1: "Not Executed",
-        0: "Ok",
-        1: "Fail",
-        2: "Crash",
-        3: "Exception",
-        4: "Blocked",
-    }
-
-    def __init__(self, name, state=None, path=None):
-        super(TestbutlerSequence, self).__init__(name, state)
+    def __init__(self, result, path=None):
+        id = os.path.relpath(path, os.path.dirname(result.path))[:-8]
+        super(TestbutlerSequence, self).__init__(id)
         self.path = path
         self.parse()
 
@@ -100,4 +105,4 @@ if __name__ == '__main__':
                   '\\ResMT\\SCALEXIO PlugIns\\CANMM\\T_01\\MainTest.LOG.xml'
     result = TestbutlerResult(result_path)
     print result
-    #pprint(result.sequences)
+    pprint(result.sequences)

@@ -33,13 +33,13 @@ class Sequence(object):
     """Base class for all sequence results."""
     possible_states = {}
 
-    def __init__(self, name, state=None):
-        self.name = name
+    def __init__(self, id, state=None):
+        self.id = id
         self.state = self.possible_states.get(state, state)
         self.log = []
 
     def __repr__(self):
-        return "<Sequence {!r}: {}>".format(self.name, self.state)
+        return "<Sequence {!r}: {}>".format(self.id, self.state)
 
 if __name__ == '__main__':
     result_path = 'R:\\PE\\Testdata\\CRTI-Test\\ImplSW_RLS_2013-A\\' \

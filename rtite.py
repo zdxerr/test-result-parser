@@ -173,15 +173,16 @@ if __name__ == '__main__':
     print result
     print result.time
     # print result.description
-    print result.tags
+    # print result.tags
+    print dir(result)
 
-    for s in result.sequences:
-        if s.state == "Fail":
-            print s,
-            print s.end - s.start
+    # for s in result.sequences:
+    #     if s.state == "Fail":
+    #         print s,
+    #         print s.end - s.start
             #pprint(s.log)
             #pprint(s.errors)
 
     pprint(result.environment)
     pprint(result.run)
-    pprint(result.sequences)
+    #pprint(result.sequences)
