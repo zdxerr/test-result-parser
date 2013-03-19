@@ -8,6 +8,7 @@ import dateutil.parser
 
 from result import ResultFile, Sequence
 
+
 class TestbutlerParser(object):
     possible_states = {
         -1: "Not Executed",
@@ -48,16 +49,12 @@ class TestbutlerParser(object):
                         s = TestbutlerSequence(self, path=filepath)
                         #print name, filepath, os.path.dirname(self.path)
 
-                        print s
-
-                        pprint(s.log)
-                        exit()
                         self.sequences.append(s)
 
 
     def start(self, tag, attrs):
         self._tags.append(tag)
-        print "->".join(self._tags), attrs
+        logging.debug("%s %r", "->".join(self._tags), attrs)
 
         # parse time attributes
         for k in ['time', 'changedate']:
@@ -66,7 +63,7 @@ class TestbutlerParser(object):
 
         if 'result' in attrs:
             self.state = self.possible_states.get(int(attrs['result']),
-                                             int(attrs['result']))
+                                                  int(attrs['result']))
 
         if tag in ['logFile', 'testDesciption']:
             self.__dict__.update(attrs)
@@ -82,9 +79,9 @@ class TestbutlerParser(object):
         assert(tag == self._tags.pop())
 
     def data(self, data):
-        print "->".join(self._tags), repr(data)
+        logging.debug("%s %r", "->".join(self._tags), data)
         if self._tags[-1] == 'log':
-            self.log.append(data)
+            self.log.append(data.encode('utf-8'))
 
 
 class TestbutlerResult(TestbutlerParser, ResultFile):
@@ -106,3 +103,7 @@ if __name__ == '__main__':
     result = TestbutlerResult(result_path)
     print result
     pprint(result.sequences)
+    for s in result.sequences:
+        print s.id
+        for l in s.log[-10:]:
+            print "   ", l
