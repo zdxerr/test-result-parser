@@ -167,6 +167,7 @@ class RTITESequence(Sequence):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
     result_path = 'R:\\PE\\Testdata\\CRTI-Test\\ImplSW_RLS_2013-A\\RTIxxxMM' \
                   '\\Res\\INT17\\T_01\\ts_results_rti1005.mat'
     result = RTITEResultFile(result_path)

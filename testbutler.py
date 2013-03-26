@@ -11,7 +11,7 @@ from result import ResultFile, Sequence
 
 class TestbutlerParser(object):
     possible_states = {
-        -1: "Not Executed",
+        -1: None,
         0: "Ok",
         1: "Fail",
         2: "Crash",
@@ -68,20 +68,22 @@ class TestbutlerParser(object):
         if tag in ['logFile', 'testDesciption']:
             self.__dict__.update(attrs)
         elif tag == 'entry':
-            attrs['log'] = []
-            self.__entry_attrs.append(attrs)
-
-        # elif tag == 'result':
-        #     print attrs
-        #     self.result.update(attrs)
+            self.__entry = {
+                'state': self.possible_states.get(int(attrs['result'])),
+                'time': attrs['time'],
+                'log': []
+            }
 
     def end(self, tag):
         assert(tag == self._tags.pop())
+        if tag == 'entry':
+            self.log.append(self.__entry)
+            self.__entry = None
 
     def data(self, data):
         logging.debug("%s %r", "->".join(self._tags), data)
         if self._tags[-1] == 'log':
-            self.log.append(data.encode('utf-8'))
+            self.__entry['log'].append(data.encode('utf-8'))
 
 
 class TestbutlerResult(TestbutlerParser, ResultFile):
@@ -98,12 +100,16 @@ class TestbutlerSequence(TestbutlerParser, Sequence):
 
 
 if __name__ == '__main__':
+    # logging.basicConfig(level=logging.DEBUG)
     result_path = 'R:\\PE\\Testdata\\CRTI-Test\\ImplSW_RLS_2013-A\\RTIxxxMM' \
                   '\\ResMT\\SCALEXIO PlugIns\\CANMM\\T_01\\MainTest.LOG.xml'
     result = TestbutlerResult(result_path)
     print result
-    pprint(result.sequences)
     for s in result.sequences:
-        print s.id
+        print "*"*79
+        print s
         for l in s.log[-10:]:
-            print "   ", l
+            print "#"*79
+            print l['state'], l['time']
+            print "".join(l['log'])
+            # pprint(l)
