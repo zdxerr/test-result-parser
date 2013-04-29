@@ -2,6 +2,7 @@
 
 import os
 from datetime import datetime, timedelta
+from operator import itemgetter
 import dateutil.parser
 from pprint import pprint
 import logging
@@ -50,13 +51,18 @@ def datenum_to_datetime(datenum):
             timedelta(days=datenum % 1))
 
 
-class RTITEResultFile(ResultFile):
+class RTITEResult(ResultFile):
+    @property
+    def td(self):
+        return self.__td
+
     def parse(self):
         self.__mat = scipy.io.matlab.loadmat(self.path)
         self.__td = self.__mat['testdata']
 
         # add platform to tags
-        self.tags.add(os.path.basename(self.path).split('_')[-1][:-4])
+        self.tags.append(os.path.basename(self.path).split('_')[-1][:-4])
+        self.tags.insert(2, "RTITE")
 
         self.__parse_environment()
         self.__parse_run()
@@ -79,6 +85,12 @@ class RTITEResultFile(ResultFile):
         for p in SWROOT_PARAMS:
             swroot[p] = env['swroot'][0][0][0][p][0]
 
+        getter = itemgetter('Name', 'Version', 'SP', 'Addresswidth')
+        self.os = map(lambda i: i[0][0][0],
+                      getter(env['wmic_sysinfo'][0]['os'][0][0]))
+
+        self.pc = env['wmic_sysinfo'][0]['net'][0][0]['name'][0][0][0]
+        self.platform = swver['test_environment']
 
     def __parse_run(self):
         self.run = run = {}
@@ -91,10 +103,10 @@ class RTITEResultFile(ResultFile):
         result = self.__td[0]['result'][0]
 
         # time_format = "%d-%b-%Y %H:%M:%S"
-        self.time = dateutil.parser.parse(result['time_start'][0][0][0],
-                                          dayfirst=True, fuzzy=True)
-        run["finish"] = dateutil.parser.parse(result['time_finish'][0][0][0],
-                                              dayfirst=True, fuzzy=True)
+        self.start = dateutil.parser.parse(result['time_start'][0][0][0],
+                                           dayfirst=True, fuzzy=True)
+        self.end = dateutil.parser.parse(result['time_finish'][0][0][0],
+                                         dayfirst=True, fuzzy=True)
 
         run["repeated_failed_tests"] = ""
         run["excluded_tests"] = []
@@ -127,7 +139,11 @@ class RTITEResultFile(ResultFile):
 
             for msg in script['stage_info']['output'][0]:
                 try:
-                    s.log.append(msg[0])
+                    # remove control characters
+                    # s.log.append(''.join(c for c in msg[0] if ord(c) >= 32))
+                    s.log.append('\n'.join(l.strip()
+                                           for l in msg[0].split('\n')
+                                           if l.strip()))
                 except:
                     pass
 
@@ -170,20 +186,19 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     result_path = 'R:\\PE\\Testdata\\CRTI-Test\\ImplSW_RLS_2013-A\\RTIxxxMM' \
                   '\\Res\\INT17\\T_01\\ts_results_rti1005.mat'
-    result = RTITEResultFile(result_path)
+    result = RTITEResult(result_path)
     print result
     print result.time
     # print result.description
     # print result.tags
-    print dir(result)
 
     # for s in result.sequences:
     #     if s.state == "Fail":
     #         print s,
     #         print s.end - s.start
-            #pprint(s.log)
-            #pprint(s.errors)
+    #         pprint(s.log)
+    #         pprint(s.errors)
 
     pprint(result.environment)
-    pprint(result.run)
+    # pprint(result.run)
     #pprint(result.sequences)

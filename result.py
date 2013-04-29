@@ -3,7 +3,7 @@
 import os
 from datetime import datetime
 
-COMMON_RESULT_PATH = 'R:\\PE\\Testdata\\CRTI-Test'
+COMMON_RESULT_PATH = r'R:\PE\Testdata\CRTI-Test'
 
 
 class ResultFile(object):
@@ -14,8 +14,9 @@ class ResultFile(object):
         self.created = datetime.fromtimestamp(os.stat(self.path).st_ctime)
 
         # derive tags from path
-        relpath = os.path.relpath(self.path, COMMON_RESULT_PATH)
-        self.tags = set(relpath.split(os.path.sep))
+        # relpath = os.path.relpath(self.path, COMMON_RESULT_PATH)
+        relpath = self.path[len(COMMON_RESULT_PATH):]  # workaround
+        self.tags = relpath.strip(os.path.sep).split(os.path.sep)
         self.description = ""
         self.time = None
         self.sequences = []
@@ -36,6 +37,7 @@ class Sequence(object):
     def __init__(self, id, state=None):
         self.id = id
         self.state = self.possible_states.get(state, state)
+        self.comment = ""
         self.log = []
 
     def __repr__(self):

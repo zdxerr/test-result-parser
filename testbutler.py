@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import with_statement
+
 import os
 from xml.parsers import expat
 from pprint import pprint
@@ -93,7 +95,8 @@ class TestbutlerResult(TestbutlerParser, ResultFile):
 
 class TestbutlerSequence(TestbutlerParser, Sequence):
     def __init__(self, result, path=None):
-        id = os.path.relpath(path, os.path.dirname(result.path))[:-8]
+        # id = os.path.relpath(path, os.path.dirname(result.path))[:-8]
+        id = path[:len(os.path.dirname(result.path)) - 8]
         super(TestbutlerSequence, self).__init__(id)
         self.path = path
         self.parse()
