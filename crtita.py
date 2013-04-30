@@ -14,19 +14,11 @@ class CRTITAResult(ResultFile):
         with open(self.path, 'r') as result_file:
             self.__result = pickle.load(result_file)
 
-        self.tags.insert(2, "CRTITA")
-        self.tags.pop()
+        self.nodes.append('CRTITA')
 
-        # for key in self.__result:
-        #     print key
-
-        # pprint(self.__result['EnvInfo'])
-        # for r in self.__result['TestResult']:
-        #     print r
         self.__parse_environment()
         self.__parse_run()
         self.__parse_sequences()
-        # pprint(self.__result['TestResult'])
 
     def __parse_environment(self):
         env = self.__result['EnvInfo']

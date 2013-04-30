@@ -61,8 +61,8 @@ class RTITEResult(ResultFile):
         self.__td = self.__mat['testdata']
 
         # add platform to tags
-        self.tags.append(os.path.basename(self.path).split('_')[-1][:-4])
-        self.tags.insert(2, "RTITE")
+        # self.tags.append(os.path.basename(self.path).split('_')[-1][:-4])
+        self.nodes.append('RTITE')
 
         self.__parse_environment()
         self.__parse_run()
@@ -137,21 +137,32 @@ class RTITEResult(ResultFile):
                 script['datacollector'][0][i]['collect_time'][0][0][0][0]
                 for i in [0, 7]))
 
-            for msg in script['stage_info']['output'][0]:
-                try:
-                    # remove control characters
-                    # s.log.append(''.join(c for c in msg[0] if ord(c) >= 32))
-                    s.log.append('\n'.join(l.strip()
-                                           for l in msg[0].split('\n')
-                                           if l.strip()))
-                except:
-                    pass
-
             s.test_depth_max = int(script['test_depth_max'][0][0])
             s.test_depth_executed = int(script['test_depth_executed'][0][0])
 
             teststage = int(script['error']['teststage_failed'][0][0][0][0])
             s.teststage_failed = None if teststage == -1 else teststage
+
+            for n, msg in enumerate(script['stage_info']['output'][0]):
+                try:
+                    s.log.append(
+                        {
+                            'id': n,
+                            'status': 1 if teststage == n else 0,
+                            'message': '\n'.join(
+                                l.strip() for l in msg[0].split('\n')
+                                if l.strip()),
+                            'name': "Stage {}".format(n)
+                        }
+                    )
+                    # remove control characters
+                    # s.log.append(''.join(c for c in msg[0] if ord(c) >= 32))
+                    # s.log.append('\n'.join(l.strip()
+                    #                        for l in msg[0].split('\n')
+                    #                        if l.strip()))
+                except Exception, exc:
+                    # print "EXC", exc
+                    pass
 
             s.errors = []
             try:

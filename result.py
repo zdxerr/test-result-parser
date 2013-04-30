@@ -1,22 +1,36 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 from datetime import datetime
 
-COMMON_RESULT_PATH = r'R:\PE\Testdata\CRTI-Test'
+TAG_EXPRESSIONS = [
+    re.compile(r'ImplSW_RLS_[0-9]+-[AB]'),
+    re.compile(r'INT[0-9]+'),
+    re.compile(r'T_[0-9]+'),
+]
+
+NODE_EXPRESSIONS = [
+    re.compile(r'RTI(xxxMM|FlexRay)'),
+]
 
 
 class ResultFile(object):
     """Base class for all result file parsers."""
 
     def __init__(self, path):
+        if not os.path.isfile(path):
+            raise IOError("File not found: {}".format(path))
         self.path = path
         self.created = datetime.fromtimestamp(os.stat(self.path).st_ctime)
 
-        # derive tags from path
-        # relpath = os.path.relpath(self.path, COMMON_RESULT_PATH)
-        relpath = self.path[len(COMMON_RESULT_PATH):]  # workaround
-        self.tags = relpath.strip(os.path.sep).split(os.path.sep)
+        self.nodes = [t for t in path.split(os.path.sep)
+                      if any(r.match(t) for r in NODE_EXPRESSIONS)]
+
+        self.label = "_".join(
+            t for t in path.split(os.path.sep)
+            if any(r.match(t) for r in TAG_EXPRESSIONS))
+
         self.description = ""
         self.time = None
         self.sequences = []
