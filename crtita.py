@@ -71,7 +71,7 @@ class CRTITAResult(ResultFile):
                         'id': tc['tcNum'],
                         'status': tc['status'],
                         'message': tc['tcName'].strip(),
-                        'name': tc['tcName'].strip()
+                        'name': tc['tcName'].strip(),
                     }
                 )
                 if tc['userData']:
@@ -105,15 +105,13 @@ if __name__ == '__main__':
                   'crtita_result'
     result = CRTITAResult(result_path)
     print result
-    pprint(result.tags)
-
-
 
     print result.start, result.end, result.end - result.start
+    print result.os
 
-    for sequence in result.sequences:
-        print sequence
-        pprint(sequence.log)
+    # for sequence in result.sequences:
+    #     print sequence
+    #     pprint(sequence.log)
     # print result.time
     # print result.description
 

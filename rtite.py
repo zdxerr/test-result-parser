@@ -86,8 +86,9 @@ class RTITEResult(ResultFile):
             swroot[p] = env['swroot'][0][0][0][p][0]
 
         getter = itemgetter('Name', 'Version', 'SP', 'Addresswidth')
-        self.os = map(lambda i: i[0][0][0],
-                      getter(env['wmic_sysinfo'][0]['os'][0][0]))
+        os = map(lambda i: i[0][0][0],
+                 getter(env['wmic_sysinfo'][0]['os'][0][0]))
+        self.os = '{} {} ({}) {}bit'.format(*os)
 
         self.pc = env['wmic_sysinfo'][0]['net'][0][0]['name'][0][0][0]
         self.platform = swver['test_environment']
@@ -132,10 +133,18 @@ class RTITEResult(ResultFile):
             except:
                 pass
 
-            # get and convert start and end times
-            s.start, s.end = map(datenum_to_datetime, (
-                script['datacollector'][0][i]['collect_time'][0][0][0][0]
-                for i in [0, 7]))
+            # read and convert timestamps
+            dc = script['datacollector'][0]
+            timestamps = []
+            for i in [0, 2, 3, 4, 5, 7]:
+                try:
+                    ts = datenum_to_datetime(dc[i]['collect_time'][0][0][0][0])
+                except:
+                    ts = None
+                finally:
+                    timestamps.append(ts)
+
+            s.start, s.end = timestamps[0], timestamps[-1]
 
             s.test_depth_max = int(script['test_depth_max'][0][0])
             s.test_depth_executed = int(script['test_depth_executed'][0][0])
@@ -152,16 +161,14 @@ class RTITEResult(ResultFile):
                             'message': '\n'.join(
                                 l.strip() for l in msg[0].split('\n')
                                 if l.strip()),
-                            'name': "Stage {}".format(n)
+                            'name': "Stage {}".format(n),
+                            'timestamp': timestamps[n]
                         }
                     )
-                    # remove control characters
-                    # s.log.append(''.join(c for c in msg[0] if ord(c) >= 32))
-                    # s.log.append('\n'.join(l.strip()
-                    #                        for l in msg[0].split('\n')
-                    #                        if l.strip()))
+                    logging.info("Appended log for stage {}".format(n))
                 except Exception, exc:
-                    # print "EXC", exc
+                    # logging.warn("Failed to append log for stage {}".format(n))
+                    # logging.warn(exc)
                     pass
 
             s.errors = []
@@ -203,13 +210,13 @@ if __name__ == '__main__':
     # print result.description
     # print result.tags
 
-    # for s in result.sequences:
-    #     if s.state == "Fail":
-    #         print s,
-    #         print s.end - s.start
-    #         pprint(s.log)
-    #         pprint(s.errors)
+    for s in result.sequences:
+        if s.state == "Fail":
+            print s,
+            print s.end - s.start
+            pprint(s.log)
+            pprint(s.errors)
 
-    pprint(result.environment)
+    # pprint(result.environment)
     # pprint(result.run)
     #pprint(result.sequences)

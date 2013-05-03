@@ -7,6 +7,8 @@ from datetime import datetime
 TAG_EXPRESSIONS = [
     re.compile(r'ImplSW_RLS_[0-9]+-[AB]'),
     re.compile(r'INT[0-9]+'),
+    re.compile(r'PPF[0-9]+'),
+    re.compile(r'RC[0-9_]+'),
     re.compile(r'T_[0-9]+'),
 ]
 
