@@ -46,11 +46,11 @@ class CRTITAResult(ResultFile):
             s = CRTITASequence(name, result[0]['status'])
             sequences.append(s)
             s.comment = result[0]['comment']
-            # print s, type(result), len(result), result[0]['status'], result[0]['exitStatus'], result[0]['execTime']
-            # for l in result:
-            #     print ' ', '.'*8
-            #     for k in l:
-            #         print '  ', k
+
+            d = name.split('\\')
+            s.name = d[-1]
+            s.group = d[-2]
+            s.nodes = d[:-2]
 
             # print '#'*8, result[0]['execTime']
             dt = dateutil.parser.parse(result[0]['execTime'], fuzzy=True)
@@ -106,12 +106,10 @@ if __name__ == '__main__':
     result = CRTITAResult(result_path)
     print result
 
-    print result.start, result.end, result.end - result.start
-    print result.os
-
-    # for sequence in result.sequences:
-    #     print sequence
-    #     pprint(sequence.log)
+    for sequence in result.sequences:
+        # print sequence,
+        print sequence.name, sequence.group, sequence.nodes
+        # pprint(sequence.log)
     # print result.time
     # print result.description
 

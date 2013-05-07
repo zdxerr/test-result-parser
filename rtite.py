@@ -128,6 +128,11 @@ class RTITEResult(ResultFile):
         for script in self.__td[0]['result'][0]['script'][0][0][0]:
             s = RTITESequence(script['name'][0], int(script['status'][0][0]))
 
+            d = script['name'][0].split('\\')
+            s.name = d[-1]
+            s.group = d[-2]
+            s.nodes = d[:-2]
+
             try:
                 s.comment = script["comment"][0]
             except:
@@ -165,7 +170,7 @@ class RTITEResult(ResultFile):
                             'timestamp': timestamps[n]
                         }
                     )
-                    logging.info("Appended log for stage {}".format(n))
+                    logging.debug("Appended log for stage {}".format(n))
                 except Exception, exc:
                     # logging.warn("Failed to append log for stage {}".format(n))
                     # logging.warn(exc)
@@ -205,17 +210,12 @@ if __name__ == '__main__':
     result_path = 'R:\\PE\\Testdata\\CRTI-Test\\ImplSW_RLS_2013-A\\RTIxxxMM' \
                   '\\Res\\INT17\\T_01\\ts_results_rti1005.mat'
     result = RTITEResult(result_path)
-    print result
-    print result.time
-    # print result.description
-    # print result.tags
 
     for s in result.sequences:
         if s.state == "Fail":
-            print s,
+            print s.id,
+            print s.name, s.nodes,
             print s.end - s.start
-            pprint(s.log)
-            pprint(s.errors)
 
     # pprint(result.environment)
     # pprint(result.run)
