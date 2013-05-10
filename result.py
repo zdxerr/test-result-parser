@@ -34,7 +34,6 @@ class ResultFile(object):
             if any(r.match(t) for r in TAG_EXPRESSIONS))
 
         self.description = ""
-        self.time = None
         self.sequences = []
 
         self.parse()
