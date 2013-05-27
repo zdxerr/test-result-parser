@@ -97,7 +97,8 @@ class RTITEResult(ResultFile):
         self.run = run = {}
 
         try:
-            self.description = self.__td["teparam"][0][0][0][0]["comment"][0]
+            d = self.__td["teparam"][0][0][0][0]["comment"][0]
+            self.description = "\n".join(s.strip() for s in d.split("\n"))
         except:
             pass
 
@@ -211,11 +212,13 @@ if __name__ == '__main__':
                   '\\Res\\INT17\\T_01\\ts_results_rti1005.mat'
     result = RTITEResult(result_path)
 
-    for s in result.sequences:
-        if s.state == "Fail":
-            print s.id,
-            print s.name, s.nodes,
-            print s.end - s.start
+    print result.description
+
+    # for s in result.sequences:
+    #     if s.state == "Fail":
+    #         print s.id,
+    #         print s.name, s.nodes,
+    #         print s.end - s.start
 
     # pprint(result.environment)
     # pprint(result.run)

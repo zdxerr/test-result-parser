@@ -24,10 +24,17 @@ class ResultFile(object):
         if not os.path.isfile(path):
             raise IOError("File not found: {}".format(path))
         self.path = path
+
         self.created = datetime.fromtimestamp(os.stat(self.path).st_ctime)
 
         self.nodes = [t for t in path.split(os.path.sep)
                       if any(r.match(t) for r in NODE_EXPRESSIONS)]
+
+        self.name = " ".join(
+            t for t in path.split(os.path.sep)
+            if any(r.match(t) for r in TAG_EXPRESSIONS))
+        self.tags = [t for t in path.split(os.path.sep)
+                     if any(r.match(t) for r in TAG_EXPRESSIONS)]
 
         self.label = "_".join(
             t for t in path.split(os.path.sep)
