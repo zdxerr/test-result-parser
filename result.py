@@ -4,12 +4,20 @@ import os
 import re
 from datetime import datetime
 
-TAG_EXPRESSIONS = [
-    re.compile(r'ImplSW_RLS_[0-9]+-[AB]'),
+INT_EXPRESSIONS = [
     re.compile(r'INT[0-9]+'),
     re.compile(r'PPF[0-9]+'),
-    re.compile(r'RC[0-9_]+'),
+    re.compile(r'KEY[0-9]+'),
+    re.compile(r'RC[0-9_]+')
+]
+
+TAG_EXPRESSIONS = INT_EXPRESSIONS + [
+    re.compile(r'ImplSW_RLS_[0-9]+-[AB]'),
     re.compile(r'T_[0-9]+'),
+    re.compile(r'RTI'),
+    re.compile(r'DNS-[0-9_-]+'),
+    re.compile(r'T[0-9]+'),
+    re.compile(r'TS[0-9]+'),
 ]
 
 NODE_EXPRESSIONS = [
@@ -36,12 +44,23 @@ class ResultFile(object):
         self.tags = [t for t in path.split(os.path.sep)
                      if any(r.match(t) for r in TAG_EXPRESSIONS)]
 
+        for t in self.tags:
+            if any(r.match(t) for r in INT_EXPRESSIONS):
+                self.integration = t
+
+        if 'RFT' in path.upper():
+            self.tags.append('RFT')
+
         self.label = "_".join(
             t for t in path.split(os.path.sep)
             if any(r.match(t) for r in TAG_EXPRESSIONS))
 
         self.description = ""
         self.sequences = []
+
+        self.pc = None
+        self.os = None
+        self.platform = None
 
         self.parse()
 

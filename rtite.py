@@ -60,8 +60,6 @@ class RTITEResult(ResultFile):
         self.__mat = scipy.io.matlab.loadmat(self.path)
         self.__td = self.__mat['testdata']
 
-        # add platform to tags
-        # self.tags.append(os.path.basename(self.path).split('_')[-1][:-4])
         self.nodes.append('RTITE')
 
         self.__parse_environment()
@@ -86,12 +84,21 @@ class RTITEResult(ResultFile):
             swroot[p] = env['swroot'][0][0][0][p][0]
 
         getter = itemgetter('Name', 'Version', 'SP', 'Addresswidth')
-        os = map(lambda i: i[0][0][0],
-                 getter(env['wmic_sysinfo'][0]['os'][0][0]))
-        self.os = '{} {} ({}) {}bit'.format(*os)
+        try:
+            os = map(lambda i: i[0][0][0],
+                     getter(env['wmic_sysinfo'][0]['os'][0][0]))
+            self.os = '{} {} ({}) {}bit'.format(*os)
+        except:
+            pass
 
-        self.pc = env['wmic_sysinfo'][0]['net'][0][0]['name'][0][0][0]
-        self.platform = swver['test_environment']
+        try:
+            self.pc = env['wmic_sysinfo'][0]['net'][0][0]['name'][0][0][0]
+        except:
+            pass
+        try:
+            self.platform = swver['test_environment']
+        except:
+            pass
 
     def __parse_run(self):
         self.run = run = {}
@@ -213,6 +220,7 @@ if __name__ == '__main__':
     result = RTITEResult(result_path)
 
     print result.description
+    print result.integration
 
     # for s in result.sequences:
     #     if s.state == "Fail":

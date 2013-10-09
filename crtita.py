@@ -32,7 +32,7 @@ class CRTITAResult(ResultFile):
         summary = self.__result['Summary']
 
         try:
-            self.description = self.result['TestrunConfig']['TestDescription']
+            self.description = self.__result['TestrunConfig']['TestDescription']
         except:
             pass
 
@@ -76,14 +76,6 @@ class CRTITAResult(ResultFile):
                 )
                 if tc['userData']:
                     for ud in tc['userData']:
-                        # for k, v in ud.items():
-                        #     s.log.append(
-                        #         {
-                        #             'id': tc['tcNum'],
-                        #             'status': tc['status'],
-                        #             'message': "{} -> {}".format(k, v)
-                        #         }
-                        #     )
                         s.log[-1]['message'] += "\n" + "\n".join(
                             "{} -> {}".format(k, v) for k, v in ud.items())
 
@@ -105,6 +97,8 @@ if __name__ == '__main__':
                   'crtita_result'
     result = CRTITAResult(result_path)
     print result
+    print result.pc
+    exit()
 
     for sequence in result.sequences:
         # print sequence,
